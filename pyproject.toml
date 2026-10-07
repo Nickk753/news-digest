@@ -1,0 +1,19 @@
+[project]
+name = "news-digest"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Nicolae", email = "nicolae.jumbei@my.ienyc.edu" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "feedparser>=6.0.14",
+]
+
+[project.scripts]
+news-digest = "news_digest:main"
+
+[build-system]
+requires = ["uv_build>=0.12.23,<0.13.0"]
+build-backend = "uv_build"
