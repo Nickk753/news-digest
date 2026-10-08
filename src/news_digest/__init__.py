@@ -1,5 +1,26 @@
 import feedparser
 
+STOPWORDS = {"after", "over", "with", "from", "into", "about", "says", "said",
+             "will", "than", "that", "this", "what", "when", "have", "were",
+             "their", "they", "more", "years", "three",
+             "pentru", "este", "care", "acest", "aceasta", "această", "acum",
+             "fost", "unui", "unei", "sunt", "după", "dintre", "foarte", "mult",
+             "spre", "doar", "până", "când", "cele", "celor", "despre"}
+
+
+def keywords(title):
+    result = set()
+    for word in title.lower().split():
+        word = word.strip(".,:;?!'\"‘’“”")
+        if len(word) > 3 and word not in STOPWORDS:
+            result.add(word)
+    return result
+
+
+def shared(title_a, title_b):
+    return keywords(title_a) & keywords(title_b)
+
+
 def main():
     print("Good morning Nick, here is your news")
     feeds = [
@@ -16,9 +37,30 @@ def main():
         "https://hotnews.ro/feed/",
         "https://www.antena3.ro/rss",
     ]
+    stories = []
     for url in feeds:
         feed = feedparser.parse(url)
-        print()
-        print(feed.feed.get("title", url))
+        source = feed.feed.get("title", url)
         for entry in feed.entries[:10]:
-            print("-", entry.title)
+            stories.append({"source": source, "title": entry.title})
+
+    for story in stories:
+        outlets = set()
+        for other in stories:
+            if len(shared(story["title"], other["title"])) >= 2:
+                outlets.add(other["source"])
+        story["coverage"] = len(outlets)
+
+    stories.sort(key=lambda s: s["coverage"], reverse=True)
+
+    top = []
+    for story in stories:
+        is_duplicate = False
+        for picked in top:
+            if len(shared(story["title"], picked["title"])) >= 2:
+                is_duplicate = True
+        if not is_duplicate:
+            top.append(story)
+
+    for story in top[:10]:
+        print(story["coverage"], "outlets -", story["title"])
