@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  {% if not updated %}<meta http-equiv="refresh" content="10">{% endif %}
   <title>Morning Brief</title>
   <style>
     body {
@@ -11,25 +12,32 @@
       background: #f4f4f5;
       color: #18181b;
     }
-    header {
-      padding: 28px 16px 8px;
-    }
-    h1 {
-      margin: 0;
-      font-size: 28px;
-    }
-    .sub {
-      margin: 4px 0 0;
-      color: #71717a;
-      font-size: 14px;
-    }
-    main {
-      padding: 8px 16px 32px;
-      max-width: 640px;
-    }
-    .card {
+    header { padding: 28px 16px 4px; }
+    h1 { margin: 0; font-size: 28px; }
+    .sub { margin: 4px 0 0; color: #71717a; font-size: 14px; }
+    nav {
+      position: sticky;
+      top: 0;
       display: flex;
-      gap: 14px;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 10px 16px;
+      background: #f4f4f5;
+    }
+    nav a {
+      flex: none;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: white;
+      color: inherit;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    main { padding: 0 16px 40px; max-width: 640px; }
+    h2 { margin: 24px 0 10px; font-size: 20px; scroll-margin-top: 60px; }
+    .card {
+      display: block;
       background: white;
       border-radius: 14px;
       padding: 14px 16px;
@@ -38,47 +46,60 @@
       color: inherit;
       box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
     }
-    .rank {
-      font-size: 20px;
-      font-weight: 700;
-      color: #a1a1aa;
-      min-width: 22px;
-    }
-    h2 {
-      margin: 0;
-      font-size: 17px;
+    .summary { margin: 0; font-size: 17px; line-height: 1.4; font-weight: 600; }
+    .title {
+      margin: 6px 0 0;
+      font-size: 14px;
       line-height: 1.35;
+      color: #52525b;
       display: -webkit-box;
-      -webkit-line-clamp: 3;
+      -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
     }
-    .meta {
-      margin: 6px 0 0;
-      font-size: 13px;
-      color: #71717a;
-    }
+    .meta { margin: 6px 0 0; font-size: 12px; color: #a1a1aa; }
+    .loading { padding: 40px 16px; color: #71717a; }
     @media (prefers-color-scheme: dark) {
-      body { background: #09090b; color: #f4f4f5; }
-      .card { background: #18181b; }
+      body, nav { background: #09090b; color: #f4f4f5; }
+      .card, nav a { background: #18181b; }
+      .title { color: #a1a1aa; }
     }
   </style>
 </head>
 <body>
   <header>
     <h1>Good morning, Nick</h1>
-    <p class="sub">Top stories right now · updated {{ updated }}</p>
+    {% if updated %}
+      <p class="sub">Updated {{ updated }} New York time</p>
+    {% endif %}
   </header>
-  <main>
-    {% for story in stories %}
-      <a class="card" href="{{ story.link }}">
-        <span class="rank">{{ loop.index }}</span>
-        <div>
-          <h2>{{ story.title }}</h2>
-          <p class="meta">Covered by {{ story.coverage }} outlets</p>
-        </div>
-      </a>
-    {% endfor %}
-  </main>
+
+  {% if not updated %}
+    <p class="loading">Gathering today's news. This page refreshes on its own in a few seconds.</p>
+  {% else %}
+    <nav>
+      {% for section in sections %}
+        <a href="#s{{ loop.index }}">{{ section.name }}</a>
+      {% endfor %}
+    </nav>
+    <main>
+      {% for section in sections %}
+        <h2 id="s{{ loop.index }}">{{ section.name }}</h2>
+        {% for story in section.stories %}
+          <a class="card" href="{{ story.link }}">
+            {% if story.summary %}
+              <p class="summary">{{ story.summary }}</p>
+              <p class="title">{{ story.title }}</p>
+            {% else %}
+              <p class="summary">{{ story.title }}</p>
+            {% endif %}
+            <p class="meta">{{ story.source }} · {{ story.coverage }} outlets</p>
+          </a>
+        {% else %}
+          <p class="meta">No stories right now.</p>
+        {% endfor %}
+      {% endfor %}
+    </main>
+  {% endif %}
 </body>
 </html>
