@@ -1,3 +1,4 @@
+import os
 import threading
 import time
 from datetime import datetime
@@ -31,9 +32,22 @@ def refresh_forever():
             time.sleep(60)  # try again in a minute instead of waiting 15
 
 
-threading.Thread(target=refresh_forever, daemon=True).start()
+# Which process started the background refresher. gunicorn can load this file
+# in one process and then copy it into another to serve visitors; a thread does
+# not survive that copy, so each serving process starts its own on first visit.
+refresher_pid = None
+refresher_lock = threading.Lock()
+
+
+def start_refresher():
+    global refresher_pid
+    with refresher_lock:
+        if refresher_pid != os.getpid():
+            refresher_pid = os.getpid()
+            threading.Thread(target=refresh_forever, daemon=True).start()
 
 
 @app.route("/")
 def home():
+    start_refresher()
     return render_template("index.html", sections=latest["sections"], updated=latest["updated"])
