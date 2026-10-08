@@ -1,3 +1,4 @@
+import html
 import socket
 from concurrent.futures import ThreadPoolExecutor
 
@@ -83,7 +84,7 @@ def fetch_feed(section, url):
     source = feed.feed.get("title", url)
     stories = []
     for entry in feed.entries[:10]:
-        title = entry.get("title", "")
+        title = html.unescape(entry.get("title", ""))
         stories.append({
             "section": section,
             "source": source,

@@ -54,7 +54,7 @@ def summarize_stories(client, stories):
         messages=[{"role": "user", "content": INSTRUCTIONS + "\n\n".join(lines)}],
     )
     if response.stop_reason != "end_turn":
-        print("Claude did not finish:", response.stop_reason)
+        print("Claude did not finish:", response.stop_reason, flush=True)
         return
 
     text = next(block.text for block in response.content if block.type == "text")
@@ -75,6 +75,6 @@ def add_summaries(sections):
             try:
                 summarize_stories(client, new_stories)
             except anthropic.APIError as error:
-                print("Summary failed for", section["name"], "-", error)
+                print("Summary failed for", section["name"], "-", error, flush=True)
         for story in section["stories"]:
             story["summary"] = SUMMARY_CACHE.get(story["link"], "")

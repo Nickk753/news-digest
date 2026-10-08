@@ -19,13 +19,16 @@ latest = {"sections": [], "updated": None}
 def refresh_forever():
     while True:
         try:
+            print("Refreshing news...", flush=True)
             sections = get_sections()
             add_summaries(sections)
             latest["sections"] = sections
             latest["updated"] = datetime.now(ZoneInfo("America/New_York")).strftime("%H:%M")
+            print("Refresh done.", flush=True)
+            time.sleep(REFRESH_MINUTES * 60)
         except Exception as error:
-            print("Refresh failed:", error)
-        time.sleep(REFRESH_MINUTES * 60)
+            print("Refresh failed:", repr(error), flush=True)
+            time.sleep(60)  # try again in a minute instead of waiting 15
 
 
 threading.Thread(target=refresh_forever, daemon=True).start()
