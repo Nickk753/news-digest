@@ -21,8 +21,7 @@ def shared(title_a, title_b):
     return keywords(title_a) & keywords(title_b)
 
 
-def main():
-    print("Good morning Nick, here is your news")
+def get_top_stories():
     feeds = [
         "https://feeds.bbci.co.uk/news/world/rss.xml",
         "https://feeds.npr.org/1001/rss.xml",
@@ -42,7 +41,7 @@ def main():
         feed = feedparser.parse(url)
         source = feed.feed.get("title", url)
         for entry in feed.entries[:10]:
-            stories.append({"source": source, "title": entry.title})
+            stories.append({"source": source, "title": entry.title, "link": entry.get("link", url)})
 
     for story in stories:
         outlets = set()
@@ -62,5 +61,10 @@ def main():
         if not is_duplicate:
             top.append(story)
 
-    for story in top[:10]:
+    return top[:10]
+
+
+def main():
+    print("Good morning Nick, here is your news")
+    for story in get_top_stories():
         print(story["coverage"], "outlets -", story["title"])
